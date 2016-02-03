@@ -1,0 +1,79 @@
+/**
+ * Adds the payment values from AltaPay to the order payment instrument on the current order.
+ *
+ * @input Order 	: dw.order.Order The current order
+ * @input XMLString : String The returned xml parameter value from create payment request.
+ * @input OrderConfirmed : Boolean This indicates, that the payment has been confirmed or not.
+ */
+importPackage( dw.order );
+importPackage( dw.system );
+importScript( 'int_altapay:/libAltaPayHelper.ds' );
+
+function execute( args : PipelineDictionary ) : Number {
+	
+	var order : Order = args.Order;
+	if( args.Order == null) {
+		Logger.error( 'AltaPayUpdateOrderPaymentTransaction.ds: Order isn\'t available.' );
+		return PIPELET_ERROR;
+	}
+	
+	var altapayHelper : Object = getAltaPayHelper();
+	var altaPayPaymentInstrument : OrderPaymentInstrument = altapayHelper.getAltaPayPaymentInstrument( order );
+	if ( altaPayPaymentInstrument == null ) {
+		Logger.error( 'UpdateOrderPaymentTransaction.ds: PaymentInstrument not found!');
+		return PIPELET_ERROR;
+	} else if ( !altapayHelper.isAltaPay ) {
+		//Not an AltaPay payment.
+		return PIPELET_NEXT;
+	}
+
+	if (args.XMLString != null && !empty(args.XMLString)) {
+		var xml_obj : XML = new XML(args.XMLString);
+		
+		//Create parameters
+		var MaskedCardNo : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardMaskedPan);
+		var TransactionID : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.TransactionId);
+		var CreditCardType : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.PaymentSchemeName);
+		var CardExirationMonth : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Month);
+		var CardExirationYear : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Year);
+	}
+	
+	//Settings payment status
+	if(args.OrderConfirmed){
+		order.setConfirmationStatus(Order.CONFIRMATION_STATUS_CONFIRMED);
+	}
+	else{
+		order.setConfirmationStatus(Order.CONFIRMATION_STATUS_NOTCONFIRMED);
+	}
+
+	//setting card number	
+	if ( !empty(MaskedCardNo) ) {
+		altaPayPaymentInstrument.setCreditCardNumber( MaskedCardNo );
+	}
+	//setting transaction id	
+	var paymentTransaction : dw.order.PaymentTransaction = altaPayPaymentInstrument.paymentTransaction;
+	paymentTransaction.setTransactionID( TransactionID );
+
+	//setting expiration date	
+	if ( !empty(CardExirationMonth) && !empty(CardExirationYear) ) {
+		var month : String = CardExirationMonth;
+		var year : String = CardExirationYear.substr(2, 4);
+		
+		altaPayPaymentInstrument.setCreditCardExpirationMonth(parseInt(month));
+		altaPayPaymentInstrument.setCreditCardExpirationYear(parseInt(year));
+	}
+	
+	//Update payment instrument
+	if(altaPayPaymentInstrument != null){
+		var paymentManager : dw.order.PaymentMgr = PaymentMgr.getPaymentMethod(altaPayPaymentInstrument.paymentMethod);
+	  	altaPayPaymentInstrument.paymentTransaction.paymentProcessor = paymentManager.paymentProcessor;
+	}
+	
+	//setting credit card type
+	var creditCardType : String = CreditCardType;
+	if ( !empty(creditCardType) ) {
+		altaPayPaymentInstrument.setCreditCardType(creditCardType);
+	}
+	
+   return PIPELET_NEXT;
+}

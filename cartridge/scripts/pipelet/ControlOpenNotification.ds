@@ -1,0 +1,63 @@
+/*
+*	This scripts dertermines how the order should be handles. 
+*	
+*	@input XMLString : String
+*	@input Order : dw.order.Order
+*	@output CancelOrder : Boolean
+*	@output OrderMatch : Boolean
+*/
+
+importPackage( dw.system );
+importPackage( dw.order );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var order : dw.order.Order = args.Order;
+	var TRANSACTIONSTATUS_PREAUTH : String = "preauth";
+	var TRANSACTIONSTATUS_BANK_PAYMENT_FINALIZED : String = "bank_payment_finalized";
+	var RESULT_SUCCESS : String = "Success";
+	var RESULT_DECLINED : String = "Declined";
+	var RESULT_SUCCEEDED : String = "Succeeded";
+	var RESULT_SUCCEEDED_LOWERCASE : String = "succeeded";
+	var RESULT_FAILED : String = "Failed";
+	
+	args.OrderMatch = false;
+	if (args.XMLString != null && !empty(args.XMLString)) {
+		var xml_obj : XML = new XML(args.XMLString);
+		var result : String = encodeURIComponent(xml_obj.Body.Result);
+		if(result.equals(RESULT_SUCCESS) || result.equals(RESULT_SUCCEEDED) || result.equals(RESULT_SUCCEEDED_LOWERCASE) ){
+			var transactionStatus : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.TransactionStatus);
+			if(transactionStatus.equals(TRANSACTIONSTATUS_PREAUTH) || transactionStatus.equals(TRANSACTIONSTATUS_BANK_PAYMENT_FINALIZED)){
+				var reservedAmount : Number = parseFloat(encodeURIComponent(xml_obj.Body.Transactions.Transaction.ReservedAmount));
+				if(order.totalGrossPrice.getValue() == reservedAmount){
+					order.setConfirmationStatus(Order.CONFIRMATION_STATUS_CONFIRMED);
+					args.CancelOrder = false;
+					args.OrderMatch = true;
+				}
+			}
+		}
+		else if(result.equals(RESULT_FAILED)){
+			args.CancelOrder = true;
+			args.OrderMatch = true;
+		}
+			
+	}
+	else{
+		return PIPELET_ERROR;
+	}
+
+  	return PIPELET_NEXT;
+}
+function verifyResult(result : String) {
+	if(result.equals(RESULT_SUCCESS)){
+		return true;
+	}
+	else if(result.equals(RESULT_SUCCEEDED)){
+		return true;
+	}
+	else if(result.equals(RESULT_SUCCEEDED_LOWERCASE)){
+		return true;
+	}
+	
+	return false;
+}

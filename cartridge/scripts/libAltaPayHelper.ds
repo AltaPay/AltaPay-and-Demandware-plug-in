@@ -1,0 +1,43 @@
+/**
+* libAltaPayHelper.ds
+* 
+* This script contains some AltaPay related convenience methods.
+*
+*/
+importPackage( dw.crypto );
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.util );
+
+function getAltaPayHelper() {
+	return AltaPayHelper;
+}
+
+var AltaPayHelper : Object = {
+	
+	isAltaPay		: false,
+	
+	/**
+	* Gets the ALTAPAY Payment Instrument for the LineItemCtnr.
+	* 
+	* @param lineItemCtnr : dw.order.LineItemCtnr the line item container
+	* 
+	* @return OrderPaymentInstrument
+	*/
+	getAltaPayPaymentInstrument : function( lineItemCtnr : LineItemCtnr ) : OrderPaymentInstrument {
+		this.isAltaPay = false;
+		
+		if ( !empty( lineItemCtnr ) ) {
+			for each ( var paymentInstrument : OrderPaymentInstrument in lineItemCtnr.getPaymentInstruments()) {
+				if ( paymentInstrument.paymentMethod.indexOf('ALTAPAY_') == 0 ) {
+					if ('paymentProviderPaymentStatus' in lineItemCtnr.custom) {
+						this.isAltaPay = lineItemCtnr.custom.paymentProviderPaymentStatus != 'ALTAPAY_BANKTRANSFER';
+					} else {
+						this.isAltaPay = true;
+					}
+					return paymentInstrument;
+				}
+			}	
+		}
+	}
+}

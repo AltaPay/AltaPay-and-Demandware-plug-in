@@ -1,0 +1,28 @@
+/**
+*	
+*	Finds the order id in the XML response.
+*	@input XMLString : String
+*	@output OrderID : String
+*
+*/
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try{
+		var openPaymentSuccesfull : Boolean = false;
+		var orderID : String = "";
+		var postalCode : String = "";
+		
+		if (args.XMLString != null && !empty(args.XMLString)) {
+			var xml_obj : XML = new XML(args.XMLString);
+			args.OrderID = encodeURIComponent(xml_obj.Body.Transactions.Transaction.ShopOrderId);
+		}
+	}
+	catch(e){
+		//logsomething?
+		return PIPELET_ERROR;	
+	}
+
+   return PIPELET_NEXT;
+}

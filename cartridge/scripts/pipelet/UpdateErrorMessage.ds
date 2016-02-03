@@ -1,0 +1,32 @@
+/**
+*	Updates the error message shown to the user, when a payment has failed.
+* 	@input XMLString : String The returned xml parameter value from create payment request.
+* 	@output ErrorMessage : String
+*
+*/
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var PAYMENT_CANCELED : String = "epayment_cancelled";
+	var errorMessage : String = '';
+	var errorMerchant : String = '';
+	
+	if(args.XMLString != null && !empty(args.XMLString)){
+		var xml_obj : XML = new XML(args.XMLString);
+		
+		//Merchant error message. Don't show this message, but it can be used by support!
+		errorMerchant = "" + xml_obj.Body.MerchantErrorMessage; 
+		
+		//Generic error message, that can be shown to the end user!
+		errorMessage = "" + xml_obj.Body.CardHolderErrorMessage;
+		
+		if(PAYMENT_CANCELED == xml_obj.Body.Transactions.Transaction.TransactionStatus){
+			errorMessage = "Cancelled by user!";
+		}
+	}
+	
+	args.ErrorMessage = errorMessage;
+	
+    return PIPELET_NEXT;
+}

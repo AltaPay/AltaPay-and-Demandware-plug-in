@@ -1,0 +1,32 @@
+/**
+* Validate that AltaPay is referrer.
+* 	@input XMLString : String The returned xml parameter value from create payment request.
+*
+* 	@output IsReferrerAltaPay : Boolean
+*	@output orderToken : String
+*
+*/
+importPackage( dw.system );
+importScript("int_altapay:libAltaPay.ds");
+
+var ALTAPAYREFERRERIP : String = "77.66.40.133";
+ 
+function execute( args : PipelineDictionary ) : Number
+{
+	args.orderToken = '';
+	if(args.XMLString != null && !empty(args.XMLString)){
+		var xml_obj : XML = new XML(args.XMLString);
+		for(var index in xml_obj.Body.Transactions.Transaction.PaymentInfos.PaymentInfo) {
+			var paymentInfo = xml_obj.Body.Transactions.Transaction.PaymentInfos.PaymentInfo[index];
+			if(paymentInfo["@name"] == 'demandware_order_token')
+			{
+				args.orderToken = ""+paymentInfo;
+				break;
+			}
+		}
+	}
+	
+	args.IsReferrerAltaPay = ALTAPAYREFERRERIP == request.httpRemoteAddress;
+
+	return PIPELET_NEXT;
+}

@@ -1,0 +1,35 @@
+/**
+ *	Get the terminal to use in the payment request.
+ *
+ * @input  PaymentMethod : String The payment Method as this is required to determine the Terminal ID based on the site preference.
+ * @output TerminalID : String The TerminalID for AltaPay Cartridge.	
+ */
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.util );
+importPackage( dw.value );
+importPackage( dw.web );
+
+importScript("libAltaPay.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	//Default set TerminalID to null.
+	var terminalID = null;
+	
+	//Get Altapay terminal name
+	var paymentMethod : PaymentMethod = pdict.PaymentMethod;
+	if (paymentMethod != null) {
+		var altaPayMgr : Object = getAltaPayMgr();	
+		var altaPayTerminals : HashMap = altaPayMgr.terminals;
+		
+		terminalID = altaPayTerminals[paymentMethod];
+	}
+	else{
+		Logger.error("Payment method is null and can't determine which AltaPay terminal to use.");
+		return PIPELET_ERROR;
+	}
+	
+	pdict.TerminalID = terminalID;
+    return PIPELET_NEXT;
+}

@@ -1,0 +1,60 @@
+/**
+* libAltaPay.ds
+* 
+* This script contains some AltaPay related convinience methods.
+*
+*/
+importPackage( dw.crypto );
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.util );
+
+function getAltaPayMgr() {
+	return AltaPayMgr;
+}
+
+function getAltaPayTerminalForCurrentLocale() {
+	var map : Map = new HashMap();
+	var terminalsString = Site.current.getCustomPreferenceValue( 'altaPayTerminals');
+	if (terminalsString == null || empty(terminalsString)) { return map; }
+	
+	var jsonTerminals : Object = JSON.parse(terminalsString);
+	var terminals : List = jsonTerminals.terminals;
+	if (terminals == null) { return map; }
+	
+	var envTerminals : List = terminals[Site.current.getCustomPreferenceValue( 'altaPayTestMode' ) ? 'test' : 'production'];
+	if (envTerminals == null) { return map; }
+	
+	var localeTerminals : List = envTerminals[request.locale];
+	if (localeTerminals == null) { return map; } 
+	
+	for each (var terminal : Object in localeTerminals) {
+		var tId : String = terminal.id;
+		var tName : String = terminal.name;
+		if (!map.containsKey(tId)) {
+			map.put(tId, tName);
+		}
+	}
+	
+	return map;
+}
+
+var AltaPayMgr : Object = {
+	
+	//initializing the values which are potentially being used
+	baseProductionURL 			: Site.current.getCustomPreferenceValue( 'altaPayBaseProductionURL' ),
+	baseTestURL 				: Site.current.getCustomPreferenceValue( 'altaPayBaseTestURL' ),
+	username					: Site.current.getCustomPreferenceValue( 'altaPayUsername' ),
+	password					: Site.current.getCustomPreferenceValue( 'altaPayPassword' ),
+	usernameTest				: Site.current.getCustomPreferenceValue( 'altaPayTestUsername' ),
+	passwordTest				: Site.current.getCustomPreferenceValue( 'altaPayTestPassword' ),
+	testMode					: Site.current.getCustomPreferenceValue( 'altaPayTestMode' ),
+	terminals					: getAltaPayTerminalForCurrentLocale(),
+	timeout						: Site.current.getCustomPreferenceValue( 'altaPayTimeout' ),
+	paymentPagePipeline			: Site.current.getCustomPreferenceValue( 'altaPayPaymentPagePipeline'),
+	paymentSuccessPipeline		: Site.current.getCustomPreferenceValue( 'altaPayPaymentSuccessPipeline'),
+	paymentFailPipeline			: Site.current.getCustomPreferenceValue( 'altaPayPaymentFailPipeline' ),
+	paymentOpenPipeline			: Site.current.getCustomPreferenceValue( 'altaPayPaymentOpenPipeline'),
+	paymentNotificationPipeline	: Site.current.getCustomPreferenceValue( 'altaPayPaymentNotificationPipeline'),
+	redirectPipeline			: Site.current.getCustomPreferenceValue( 'altaPayRedirectPipeline'),
+}
