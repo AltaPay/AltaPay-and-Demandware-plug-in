@@ -19,7 +19,8 @@ var CREATEPAYMENTURL : String = "/merchant/API/createPaymentRequest";
 
 function execute( args : PipelineDictionary ) : Number
 {
-	var order : Order = args.Order;
+	var order : Order = args.Order; 
+	var req = request;
 	
 	var altaPayMgr : Object = getAltaPayMgr();
 	var url : String = (altaPayMgr.testMode ? altaPayMgr.baseTestURL : altaPayMgr.baseProductionURL) +
@@ -50,16 +51,22 @@ function execute( args : PipelineDictionary ) : Number
 	parameterArr.push( [ 'shop_orderid', order.orderNo					].join( '=' ) );
 	parameterArr.push( [ 'amount', paymentTotal.value.toFixed(2)					].join( '=' ) );
 	parameterArr.push( [ 'currency', currencyCode			 						].join( '=' ) );
-	parameterArr.push( [ 'language', request.locale.indexOf('ru') == 0 ? 'en' : request.locale	].join( '=' ) );
+	parameterArr.push( [ 'language', convertLanguageCode(request.locale)	].join( '=' ) );
 	parameterArr.push( [ 'type', 'payment'											].join( '=' ) ); //See documentation for other payment types.
 	
 	//Callback config parameters
 	if ( !empty(altaPayMgr.paymentPagePipeline) ) {
 		parameterArr.push( [ encodeURIComponent('config[callback_form]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentPagePipeline )) 	].join( '=' ) );
 	}
-	parameterArr.push( [ encodeURIComponent('config[callback_ok]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentSuccessPipeline ))					].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('config[callback_fail]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentFailPipeline ))				].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('config[callback_open]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentOpenPipeline ))				].join( '=' ) );
+	
+	//CSRF TOKEN:
+	var CSRFProtection = require('dw/web/CSRFProtection');
+	var name = CSRFProtection.getTokenName();
+	var token = '?' + name + '=' + req.httpParameterMap.csrf_token.stringValue;
+	
+	parameterArr.push( [ encodeURIComponent('config[callback_ok]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentSuccessPipeline  )) + token 	].join( '=' ) );
+	parameterArr.push( [ encodeURIComponent('config[callback_fail]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentFailPipeline ))	 + token 	].join( '=' ) );
+	parameterArr.push( [ encodeURIComponent('config[callback_open]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentOpenPipeline ))	 + token 	].join( '=' ) );
 	
 	if (!empty(altaPayMgr.redirectPipeline)) {
 		parameterArr.push( [ encodeURIComponent('config[callback_redirect]'), encodeURIComponent(URLUtils.https( altaPayMgr.redirectPipeline ))	].join( '=' ) );
@@ -188,4 +195,15 @@ function execute( args : PipelineDictionary ) : Number
     }
     
    return PIPELET_NEXT;
+}
+
+function convertLanguageCode(languageCode){
+	var pattern = /(.{2,3})(_)/;
+	var match = pattern.exec(languageCode);
+	if(match != null){
+		return match[1];
+	}
+	else{
+		return languageCode;
+	}
 }
