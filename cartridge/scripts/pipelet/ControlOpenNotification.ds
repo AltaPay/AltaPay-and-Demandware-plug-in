@@ -61,3 +61,23 @@ function verifyResult(result : String) {
 	
 	return false;
 }
+
+function controlOpenNotification (order, xmlString) {
+
+	var obj = {Order: order, XMLString: xmlString};
+	
+	var ret = execute(obj);
+	
+	if (ret == PIPELET_NEXT) {
+		return obj;	
+	}
+	else {
+		return null;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	controlOpenNotification: controlOpenNotification
+}

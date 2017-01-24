@@ -72,7 +72,7 @@ function execute( args : PipelineDictionary ) : Number
 		parameterArr.push( [ encodeURIComponent('config[callback_redirect]'), encodeURIComponent(URLUtils.https( altaPayMgr.redirectPipeline ))	].join( '=' ) );
 	}
 	if (!empty(altaPayMgr.paymentNotificationPipeline)) {
-		parameterArr.push( [ encodeURIComponent('config[callback_notification]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentNotificationPipeline ))	].join( '=' ) );
+		parameterArr.push( [ encodeURIComponent('config[callback_notification]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentNotificationPipeline )) + token ].join( '=' ) );
 	}
 	
 	//Customer config parameters
@@ -206,4 +206,22 @@ function convertLanguageCode(languageCode){
 	else{
 		return languageCode;
 	}
+}
+
+function create (pdict) {
+	
+	execute(pdict);
+	
+	if (pdict.CreatePaymentURL == '') {
+		return false;
+	}
+	else {
+		return true;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	create: create
 }

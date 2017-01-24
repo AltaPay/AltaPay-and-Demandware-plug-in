@@ -49,3 +49,28 @@ function execute( pdict : PipelineDictionary ) : Number
 	pdict.PaymentInstrument = paymentInstr;
     return PIPELET_NEXT;
 }
+
+function createPayment (pdict) {
+	
+	var obj = {
+		LineItemCtnr: pdict.Basket, // LineItemCtnr: Basket != null ? Basket : Order
+		PaymentType: pdict.PaymentMethodID,
+		RemoveExisting: true
+	};
+	
+	var ret = execute(obj);
+	
+	if (ret == PIPELET_NEXT) {
+		pdict.PaymentInstrument = obj.PaymentInstrument;
+		return true;	
+	}
+	else {
+		return false;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	createPayment: createPayment
+}

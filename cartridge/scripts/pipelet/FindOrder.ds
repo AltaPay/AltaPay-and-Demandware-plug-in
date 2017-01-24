@@ -26,3 +26,23 @@ function execute( args : PipelineDictionary ) : Number
 
    return PIPELET_NEXT;
 }
+
+function findOrder (xmlString) {
+	
+	var obj = {XMLString: xmlString};
+	
+	var ret = execute(obj);
+	
+	if (ret == PIPELET_NEXT) {
+		return obj.OrderID;	
+	}
+	else {
+		return null;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	findOrder: findOrder
+}

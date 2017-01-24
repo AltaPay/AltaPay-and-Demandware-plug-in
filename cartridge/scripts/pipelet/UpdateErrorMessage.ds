@@ -16,7 +16,7 @@ function execute( args : PipelineDictionary ) : Number
 		var xml_obj : XML = new XML(args.XMLString);
 		
 		//Merchant error message. Don't show this message, but it can be used by support!
-		errorMerchant = "" + xml_obj.Body.MerchantErrorMessage; 
+		errorMerchant = "" + xml_obj.Body.MerchantErrorMessage;  // TODO IT'S NOT USING THIS!
 		
 		//Generic error message, that can be shown to the end user!
 		errorMessage = "" + xml_obj.Body.CardHolderErrorMessage;
@@ -29,4 +29,20 @@ function execute( args : PipelineDictionary ) : Number
 	args.ErrorMessage = errorMessage;
 	
     return PIPELET_NEXT;
+}
+
+
+function updateErrorMessage (xmlString) {
+	
+	var obj = {XMLString: xmlString};
+	
+	execute(obj);
+	
+	return obj.ErrorMessage;
+		
+}
+
+module.exports = {
+	execute: execute,
+	updateErrorMessage: updateErrorMessage
 }

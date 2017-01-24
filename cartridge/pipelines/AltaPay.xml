@@ -450,17 +450,40 @@
           </segment>
         </branch>
         <branch basename="b4" source-connector="OK">
-          <transition target-connector="in"/>
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
           <segment>
             <node>
+              <decision-node condition-key="Order.getStatus() == Order.ORDER_STATUS_NEW" condition-operator="expr">
+                <description>The status will be changed to NEW, but only if it's not already NEW</description>
+              </decision-node>
+              <node-display x="-1" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in1" target-path="./b4.1">
+                  <transition-display>
+                    <bend-point relative-to="target" x="-2" y="0"/>
+                  </transition-display>
+                </transition>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="0" y="-1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
               <call-node start-name-ref="COPlaceOrder-SubmitImpl"/>
-              <node-display x="0" y="1"/>
-              <branch basename="b2" source-connector="error">
+              <node-display x="1" y="1"/>
+              <branch basename="b3" source-connector="error">
                 <transition target-connector="in1"/>
                 <segment>
                   <node>
                     <join-node/>
-                    <node-display x="3" y="2"/>
+                    <node-display x="3" y="1"/>
                   </node>
                   <simple-transition/>
                   <node>
@@ -513,7 +536,25 @@
                       <key-binding alias="null" key="From_9"/>
                       <key-binding alias="null" key="To_9"/>
                       <key-binding alias="PaymentError" key="To_0"/>
+                      <key-binding alias="dw.web.URLUtils.https('COBilling-Start', 'altapayErrorMessage', ErrorMessage)" key="From_1"/>
+                      <key-binding alias="Location" key="To_1"/>
                     </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <interaction-node transaction-required="false">
+                      <template buffered="true" dynamic="false" name="util/redirect"/>
+                    </interaction-node>
+                    <node-display x="0" y="2"/>
+                  </node>
+                </segment>
+              </branch>
+              <branch basename="b4" source-connector="order_created">
+                <transition target-connector="in1"/>
+                <segment>
+                  <node>
+                    <join-node/>
                     <node-display x="0" y="1"/>
                   </node>
                   <simple-transition>
@@ -521,15 +562,6 @@
                       <bend-point relative-to="source" x="0" y="1"/>
                     </transition-display>
                   </simple-transition>
-                  <node>
-                    <jump-node start-name-ref="COSummary-Start"/>
-                    <node-display x="0" y="1"/>
-                  </node>
-                </segment>
-              </branch>
-              <branch basename="b3" source-connector="order_created">
-                <transition target-connector="in"/>
-                <segment>
                   <node>
                     <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
                       <config-property key="Transactional" value="true"/>
@@ -541,9 +573,9 @@
                       <key-binding alias="OrderConfirmed" key="OrderConfirmed"/>
                       <key-binding alias="OpenMessage" key="OpenMessage"/>
                     </pipelet-node>
-                    <node-display x="0" y="2"/>
+                    <node-display x="0" y="1"/>
                     <branch basename="b2" source-connector="error">
-                      <transition target-connector="in1" target-path="../b2.1"/>
+                      <transition target-connector="in1" target-path="../b3.1"/>
                     </branch>
                   </node>
                   <simple-transition>
@@ -699,7 +731,7 @@
         <call-node start-name-ref="COPlaceOrder-FailImpl"/>
         <node-display x="0" y="3"/>
       </node>
-      <transition target-connector="in1" target-path="/PaymentSuccess.2/b4.1/b2.1"/>
+      <transition target-connector="in1" target-path="/PaymentSuccess.2/b4.1/b3.1"/>
     </segment>
   </branch>
   <branch basename="_ANONYMOUS_BRANCH_15">
@@ -835,30 +867,73 @@
               <branch basename="b4" source-connector="yes">
                 <transition target-connector="in">
                   <transition-display>
+                    <bend-point relative-to="target" x="2" y="-1"/>
                     <bend-point relative-to="target" x="0" y="-1"/>
                   </transition-display>
                 </transition>
                 <segment>
                   <node>
-                    <interaction-node transaction-required="false">
-                      <template buffered="true" dynamic="false" name="altapay/notification_feed_back"/>
-                    </interaction-node>
-                    <node-display x="0" y="2"/>
+                    <decision-node condition-key="Order.getStatus() == Order.ORDER_STATUS_NEW" condition-operator="expr">
+                      <description>The status will be changed to NEW, but only if it's not already NEW</description>
+                    </decision-node>
+                    <node-display x="-1" y="2"/>
+                    <branch basename="b2" source-connector="yes">
+                      <transition target-connector="in1" target-path="./b4.1">
+                        <transition-display>
+                          <bend-point relative-to="target" x="-2" y="0"/>
+                        </transition-display>
+                      </transition>
+                    </branch>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="2" y="0"/>
+                      <bend-point relative-to="target" x="0" y="-1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <call-node start-name-ref="COPlaceOrder-SubmitImpl"/>
+                    <node-display x="1" y="2"/>
+                    <branch basename="b3" source-connector="error">
+                      <transition target-connector="in1" target-path="../+1"/>
+                    </branch>
+                    <branch basename="b4" source-connector="order_created">
+                      <transition target-connector="in1"/>
+                      <segment>
+                        <node>
+                          <join-node/>
+                          <node-display x="0" y="2"/>
+                        </node>
+                        <simple-transition/>
+                        <node>
+                          <interaction-node transaction-required="false">
+                            <template buffered="true" dynamic="false" name="altapay/notification_feed_back"/>
+                          </interaction-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                      </segment>
+                    </branch>
                   </node>
                 </segment>
               </branch>
             </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="3" y="2"/>
+            </node>
             <simple-transition>
               <transition-display>
-                <bend-point relative-to="source" x="2" y="0"/>
-                <bend-point relative-to="target" x="0" y="-1"/>
+                <bend-point relative-to="source" x="0" y="1"/>
               </transition-display>
             </simple-transition>
             <node>
               <interaction-node transaction-required="false">
                 <template buffered="true" dynamic="false" name="altapay/notification_feedback_order_not_found"/>
               </interaction-node>
-              <node-display x="1" y="1"/>
+              <node-display x="0" y="1"/>
             </node>
           </segment>
         </branch>
@@ -1122,6 +1197,16 @@
       </node>
     </segment>
   </branch>
+  <branch basename="_ANONYMOUS_BRANCH_25">
+    <segment>
+      <node>
+        <text-node>
+          <description>Shows the confirmation page.</description>
+        </text-node>
+        <node-display x="4" y="35"/>
+      </node>
+    </segment>
+  </branch>
   <branch basename="OrderConfirmation">
     <segment>
       <node>
@@ -1154,6 +1239,68 @@
             </node>
           </segment>
         </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="dw.web.URLUtils.https('AltaPay-ShowConfirmation', 'altapayOpenMessage', openMessage)" key="From_0"/>
+          <key-binding alias="Location" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="util/redirect"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ShowConfirmation">
+    <segment>
+      <node>
+        <start-node name="ShowConfirmation" secure="false"/>
+        <node-display x="4" y="36"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="GetOrder" pipelet-set-identifier="bc_api">
+          <key-binding alias="CurrentSession.privacy.orderNo" key="OrderNo"/>
+          <key-binding alias="Order" key="Order"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
       </node>
       <simple-transition>
         <transition-display>

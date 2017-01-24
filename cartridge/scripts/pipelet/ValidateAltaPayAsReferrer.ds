@@ -6,27 +6,48 @@
 *	@output orderToken : String
 *
 */
-importPackage( dw.system );
+// importPackage( dw.system );
 importScript("int_altapay:libAltaPay.ds");
 
 var ALTAPAYREFERRERIP : String = "77.66.40.133";
  
 function execute( args : PipelineDictionary ) : Number
 {
-	args.orderToken = '';
-	if(args.XMLString != null && !empty(args.XMLString)){
-		var xml_obj : XML = new XML(args.XMLString);
+	
+	var ret = validateAltaPayAsReferrer (args.XMLString);
+
+	args.IsReferrerAltaPay = ret.IsReferrerAltaPay;
+	args.orderToken= ret.orderToken;
+
+	return PIPELET_NEXT;
+}
+
+function validateAltaPayAsReferrer (XMLString) 
+{
+
+	var orderToken = '';
+	if(XMLString != null && !empty(XMLString)){
+		var xml_obj : XML = new XML(XMLString);
 		for(var index in xml_obj.Body.Transactions.Transaction.PaymentInfos.PaymentInfo) {
 			var paymentInfo = xml_obj.Body.Transactions.Transaction.PaymentInfos.PaymentInfo[index];
 			if(paymentInfo["@name"] == 'demandware_order_token')
 			{
-				args.orderToken = ""+paymentInfo;
+				orderToken = ""+paymentInfo;
 				break;
 			}
 		}
 	}
 	
-	args.IsReferrerAltaPay = ALTAPAYREFERRERIP == request.httpRemoteAddress;
+	var IsReferrerAltaPay = ALTAPAYREFERRERIP == request.httpRemoteAddress;
+	
+	return {
+		IsReferrerAltaPay: IsReferrerAltaPay,
+		orderToken: orderToken
+	};
+	
+}
 
-	return PIPELET_NEXT;
+module.exports = {
+	execute: execute,
+	validateAltaPayAsReferrer: validateAltaPayAsReferrer
 }

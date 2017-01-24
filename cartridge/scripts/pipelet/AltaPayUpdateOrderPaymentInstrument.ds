@@ -77,3 +77,28 @@ function execute( args : PipelineDictionary ) : Number {
 	
    return PIPELET_NEXT;
 }
+
+function updateOrderPaymentInstrument (order: Order, xmlString: String, orderConfirmed: Boolean) {
+	
+	var ret = execute(
+		{
+			Order: order,
+			XMLString: xmlString,
+			OrderConfirmed: orderConfirmed
+		});
+		
+	if (ret == PIPELET_NEXT) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	updateOrderPaymentInstrument: updateOrderPaymentInstrument
+}
+
+

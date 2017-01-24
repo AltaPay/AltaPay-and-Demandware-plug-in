@@ -33,3 +33,24 @@ function execute( pdict : PipelineDictionary ) : Number
 	pdict.TerminalID = terminalID;
     return PIPELET_NEXT;
 }
+
+function check (pdict) {
+	
+	var obj = {PaymentMethod: pdict.PaymentInstrument.paymentMethod};
+	
+	var ret = execute(obj);
+	
+	if (ret == PIPELET_NEXT) {
+		pdict.TerminalID = obj.TerminalID;
+		return true;	
+	}
+	else {
+		return false;
+	}
+	
+}
+
+module.exports = {
+	execute: execute,
+	check: check
+}
