@@ -37,7 +37,8 @@ function execute( pdict : PipelineDictionary ) : Number
 	// remove existing payment instruments from the basket
 	if (removeExisting)
 	{
-		removeExistingPaymentInstruments( lineItemCtnr,  paymentType );
+		//removeExistingPaymentInstruments( lineItemCtnr,  paymentType );
+		lineItemCtnr.removeAllPaymentInstruments();
 	}
 
 	// calculate the amount to be reflected by this payment instrument

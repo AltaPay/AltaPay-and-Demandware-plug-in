@@ -112,8 +112,10 @@ function execute( args : PipelineDictionary ) : Number
 			parameterArr.push( [ encodeURIComponent('orderLines[0][description]'), encodeURIComponent(dw.web.Resource.msg('altapay.paymentcreate.shipment','altapay','Shipment'))].join( '=' ) );
 			parameterArr.push( [ encodeURIComponent('orderLines[0][itemId]'), 'shipment'													].join( '=' ) );
 			parameterArr.push( [ encodeURIComponent('orderLines[0][quantity]'), '1'															].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][unitPrice]'), encodeURIComponent(shipment.adjustedShippingTotalNetPrice)	].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][taxAmount]'), encodeURIComponent(shipment.adjustedShippingTotalTax)		].join( '=' ) );
+			//parameterArr.push( [ encodeURIComponent('orderLines[0][unitPrice]'), encodeURIComponent(shipment.adjustedShippingTotalNetPrice)	].join( '=' ) );
+			//parameterArr.push( [ encodeURIComponent('orderLines[0][taxAmount]'), encodeURIComponent(shipment.adjustedShippingTotalTax)		].join( '=' ) );
+			parameterArr.push( [ encodeURIComponent('orderLines[0][unitPrice]'), encodeURIComponent(shipment.shippingTotalNetPrice)			].join( '=' ) );
+			parameterArr.push( [ encodeURIComponent('orderLines[0][taxAmount]'), encodeURIComponent(shipment.shippingTotalTax)				].join( '=' ) );
 			parameterArr.push( [ encodeURIComponent('orderLines[0][goodsType]'), 'shipment'													].join( '=' ) );
 				
 			//Add products
