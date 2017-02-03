@@ -59,8 +59,8 @@ function execute( args : PipelineDictionary ) : Number {
 		var month : String = CardExirationMonth;
 		var year : String = CardExirationYear.substr(2, 4);
 		
-		altaPayPaymentInstrument.setCreditCardExpirationMonth(parseInt(month));
-		altaPayPaymentInstrument.setCreditCardExpirationYear(parseInt(year));
+		altaPayPaymentInstrument.setCreditCardExpirationMonth(parseInt(month, 10));
+		altaPayPaymentInstrument.setCreditCardExpirationYear(parseInt(year, 10));
 	}
 	
 	//Update payment instrument
