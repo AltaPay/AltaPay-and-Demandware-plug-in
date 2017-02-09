@@ -30,7 +30,13 @@ function execute( args : PipelineDictionary ) : Number
 	if(TaxMgr.taxationPolicy == TaxMgr.TAX_POLICY_GROSS && order.totalGrossPrice.available) {
 		paymentTotal = order.totalGrossPrice;
 	} else if (TaxMgr.taxationPolicy == TaxMgr.TAX_POLICY_NET && order.totalNetPrice.available) {
-		paymentTotal = order.totalNetPrice;
+	
+		if (order.totalTax.available) {
+			paymentTotal = order.totalNetPrice.add(order.totalTax);
+		} else {
+			paymentTotal = order.totalNetPrice;
+		}
+		
 	} else {
 		paymentTotal = order.getAdjustedMerchandizeTotalPrice(true).add(order.giftCertificateTotalPrice);
 	}
