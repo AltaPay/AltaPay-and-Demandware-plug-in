@@ -36,6 +36,7 @@ function execute( args : PipelineDictionary ) : Number {
 		var CreditCardType : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.PaymentSchemeName);
 		var CardExirationMonth : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Month);
 		var CardExirationYear : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Year);
+		var ReconciliationID : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.ReconciliationIdentifiers.ReconciliationIdentifier.Id);
 	}
 	
 	//Settings payment status
@@ -63,6 +64,21 @@ function execute( args : PipelineDictionary ) : Number {
 		altaPayPaymentInstrument.setCreditCardExpirationYear(parseInt(year, 10));
 	}
 	
+	//Set reconciliation ID
+    try{
+        var txn = require('dw/system/Transaction');
+        var custom : CustomAttributes = altaPayPaymentInstrument.getCustom();
+        if(ReconciliationID != null){
+            txn.wrap (
+                function () {
+                    custom.reconciliationIdentifier = ReconciliationID;
+                });
+        }
+    }
+    catch(e){
+        //The reconciliationIdentifier was set on the Order Payment Instrument        
+    }
+    
 	//Update payment instrument
 	if(altaPayPaymentInstrument != null){
 		var paymentManager : dw.order.PaymentMgr = PaymentMgr.getPaymentMethod(altaPayPaymentInstrument.paymentMethod);

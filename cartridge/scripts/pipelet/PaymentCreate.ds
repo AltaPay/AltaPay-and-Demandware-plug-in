@@ -65,6 +65,20 @@ function execute( args : PipelineDictionary ) : Number
 		parameterArr.push( [ encodeURIComponent('config[callback_form]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentPagePipeline )) 	].join( '=' ) );
 	}
 	
+	//Credit card token:
+	var custom: CustomAttributes = session.getCustomer().getProfile().getCustom();
+
+	try {	
+		var ccToken = custom.ccToken;
+		if (ccToken != undefined && ccToken != null) {
+			parameterArr.push (['ccToken', ccToken].join('=')); 
+		}
+	}
+	catch (e) {
+		// Exception: ccToken wasn't defined inside Demandware Business Manager 
+	}
+	
+	
 	//CSRF TOKEN:
 	var CSRFProtection = require('dw/web/CSRFProtection');
 	var name = CSRFProtection.getTokenName();
@@ -164,6 +178,11 @@ function execute( args : PipelineDictionary ) : Number
 	
 	//Add Order token
 	parameterArr.push( ['transaction_info[demandware_order_token]', order.getOrderToken()].join( '=' ));
+	
+	/*
+	//add the sale_reconciliation_identifier 
+	parameterArr.push( ['sale_reconciliation_identifier', "Insert reconciliation identifier here" ].join( '=' ));
+	*/
 	
 	//Cookies
 	var cookies : Cookies = request.httpCookies;

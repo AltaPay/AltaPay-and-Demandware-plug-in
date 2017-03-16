@@ -1,0 +1,62 @@
+/**
+*	
+* Saves the credit card token, if necessary.
+*
+*/
+importPackage( dw.system );
+importPackage( dw.web );
+
+function execute( args : PipelineDictionary ) : Number {
+
+	save();
+
+   	return PIPELET_NEXT;
+}
+
+function save () {
+
+	var map: HttpParameterMap = request.getHttpParameterMap();
+
+	if (map.nature != 'CreditCard') {
+		return;
+	}
+
+	var custom: CustomAttributes = session.getCustomer().getProfile().getCustom(); 
+	
+	try {
+		
+		var cct = custom.ccToken;
+		
+	} 
+	catch (e) {
+		return; // The attribute ccToken wasn't created inside Demandware Business Manager
+	}
+
+	var ti: HttpParameter = map.get('transaction_info[savecreditcard]');
+	
+	var saveCc: boolean = ti.intValue == 1 ? true : false; 
+	
+	var txn = require('dw/system/Transaction');
+	
+	if (! saveCc) {
+		
+		// The user doesn't want to save his credit card information
+		txn.wrap (
+				function () {
+					custom.ccToken = null;
+				});
+	}
+	else if (map.credit_card_token != null) {
+	
+		// Save the credit card token:
+		txn.wrap (
+				function () {
+					custom.ccToken = map.credit_card_token;
+				});
+	}
+}
+
+module.exports = {
+	execute: execute,
+	save: save
+}

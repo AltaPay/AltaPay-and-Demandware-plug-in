@@ -59,48 +59,48 @@
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayTimeout">
 				<display-name xml:lang="x-default">AltaPay timeout</display-name>
-				<description xml:lang="x-default">Timeout(seconds) for communication with AltaPay backend. NB. Don't change!</description>
+				<description xml:lang="x-default">Timeout (seconds) for communication with AltaPay backend. NB. Don't change!</description>
 				<type>int</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>30</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayPaymentPagePipeline">
-				<display-name xml:lang="x-default">AltaPay payment page pipeline</display-name>
+				<display-name xml:lang="x-default">AltaPay payment page URL</display-name>
 				<description xml:lang="x-default">Demandware payment page URL AltaPay should merge payment form into.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>AltaPay-CallbackForm</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayPaymentSuccessPipeline">
-				<display-name xml:lang="x-default">AltaPay payment success pipeline</display-name>
+				<display-name xml:lang="x-default">AltaPay payment success URL</display-name>
 				<description xml:lang="x-default">Demandware success/receipt landing page if authorization is successfull.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>AltaPay-PaymentSuccess</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayPaymentFailPipeline">
-				<display-name xml:lang="x-default">AltaPay payment fail pipeline</display-name>
+				<display-name xml:lang="x-default">AltaPay payment fail URL</display-name>
 				<description xml:lang="x-default">Demandware fail landing page if authorization is unsuccessfull.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>AltaPay-PaymentFail</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayPaymentOpenPipeline">
-				<display-name xml:lang="x-default">AltaPay payment open pipeline</display-name>
+				<display-name xml:lang="x-default">AltaPay payment open URL</display-name>
 				<description xml:lang="x-default">Demandware success/receipt landing page if authorization is open.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>AltaPay-PaymentOpen</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayPaymentNotificationPipeline">
-				<display-name xml:lang="x-default">AltaPay payment notification pipeline</display-name>
-				<description xml:lang="x-default">Demandware notification landingpage to update open order.</description>
+				<display-name xml:lang="x-default">AltaPay payment notification URL</display-name>
+				<description xml:lang="x-default">Demandware notification landing page to update an open order.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>
 				<default-value>AltaPay-PaymentNotification</default-value>
 			</attribute-definition>
 			<attribute-definition attribute-id="altaPayRedirectPipeline">
-				<display-name xml:lang="x-default">AltaPay redirect page pipeline</display-name>
+				<display-name xml:lang="x-default">AltaPay redirect page URL</display-name>
 				<description xml:lang="x-default">Demandware page shown during redirection between customer, webshop and AltaPay.</description>
 				<type>string</type>
 				<mandatory-flag>false</mandatory-flag>

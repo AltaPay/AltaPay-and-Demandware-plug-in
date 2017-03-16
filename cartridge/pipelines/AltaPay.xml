@@ -452,204 +452,221 @@
         <branch basename="b4" source-connector="OK">
           <transition target-connector="in">
             <transition-display>
-              <bend-point relative-to="target" x="0" y="-1"/>
+              <bend-point relative-to="source" x="0" y="1"/>
             </transition-display>
           </transition>
           <segment>
             <node>
-              <decision-node condition-key="Order.getStatus() == Order.ORDER_STATUS_NEW" condition-operator="expr">
-                <description>The status will be changed to NEW, but only if it's not already NEW</description>
-              </decision-node>
-              <node-display x="-1" y="1"/>
-              <branch basename="b2" source-connector="yes">
-                <transition target-connector="in1" target-path="./b4.1">
+              <call-node start-name-ref="AltaPay-CheckCreditCardFraud"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="OK">
+                <transition target-connector="in">
                   <transition-display>
-                    <bend-point relative-to="target" x="-2" y="0"/>
+                    <bend-point relative-to="target" x="0" y="-1"/>
                   </transition-display>
                 </transition>
-              </branch>
-            </node>
-            <simple-transition>
-              <transition-display>
-                <bend-point relative-to="source" x="2" y="0"/>
-                <bend-point relative-to="target" x="0" y="-1"/>
-              </transition-display>
-            </simple-transition>
-            <node>
-              <call-node start-name-ref="COPlaceOrder-SubmitImpl"/>
-              <node-display x="1" y="1"/>
-              <branch basename="b3" source-connector="error">
-                <transition target-connector="in1"/>
                 <segment>
                   <node>
-                    <join-node/>
-                    <node-display x="3" y="1"/>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="false"/>
-                      <config-property key="OnError" value="PIPELET_ERROR"/>
-                      <config-property key="ScriptFile" value="pipelet/UpdateErrorMessage.ds"/>
-                      <key-binding alias="ScriptLog" key="ScriptLog"/>
-                      <key-binding alias="Error" key="Error"/>
-                      <key-binding alias="ErrorMessage" key="ErrorMessage"/>
-                      <key-binding alias="PaymentError" key="PaymentError"/>
-                      <key-binding alias="CurrentHttpParameterMap.xml.stringValue" key="XMLString"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                    <branch basename="b2" source-connector="error">
-                      <transition target-connector="in">
+                    <decision-node condition-key="Order.getStatus() == Order.ORDER_STATUS_NEW" condition-operator="expr">
+                      <description>The status will be changed to NEW, but only if it's not already NEW</description>
+                    </decision-node>
+                    <node-display x="-1" y="2"/>
+                    <branch basename="b2" source-connector="yes">
+                      <transition target-connector="in1" target-path="./b4.1">
                         <transition-display>
-                          <bend-point relative-to="source" x="2" y="0"/>
-                          <bend-point relative-to="target" x="0" y="-1"/>
+                          <bend-point relative-to="target" x="-2" y="0"/>
                         </transition-display>
                       </transition>
+                    </branch>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="2" y="0"/>
+                      <bend-point relative-to="target" x="0" y="-1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <call-node start-name-ref="COPlaceOrder-SubmitImpl"/>
+                    <node-display x="1" y="2"/>
+                    <branch basename="b3" source-connector="error">
+                      <transition target-connector="in1"/>
                       <segment>
                         <node>
+                          <join-node/>
+                          <node-display x="3" y="-1"/>
+                        </node>
+                        <simple-transition>
+                          <transition-display>
+                            <bend-point relative-to="target" x="0" y="-1"/>
+                          </transition-display>
+                        </simple-transition>
+                        <node>
+                          <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <config-property key="OnError" value="PIPELET_ERROR"/>
+                            <config-property key="ScriptFile" value="pipelet/UpdateErrorMessage.ds"/>
+                            <key-binding alias="ScriptLog" key="ScriptLog"/>
+                            <key-binding alias="Error" key="Error"/>
+                            <key-binding alias="ErrorMessage" key="ErrorMessage"/>
+                            <key-binding alias="PaymentError" key="PaymentError"/>
+                            <key-binding alias="CurrentHttpParameterMap.xml.stringValue" key="XMLString"/>
+                          </pipelet-node>
+                          <node-display x="0" y="2"/>
+                          <branch basename="b2" source-connector="error">
+                            <transition target-connector="in">
+                              <transition-display>
+                                <bend-point relative-to="source" x="2" y="0"/>
+                                <bend-point relative-to="target" x="0" y="-1"/>
+                              </transition-display>
+                            </transition>
+                            <segment>
+                              <node>
+                                <interaction-node transaction-required="false">
+                                  <template buffered="true" dynamic="false" name="error/generalerror"/>
+                                </interaction-node>
+                                <node-display x="1" y="1"/>
+                              </node>
+                            </segment>
+                          </branch>
+                        </node>
+                        <simple-transition/>
+                        <node>
+                          <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <key-binding alias="ErrorMessage" key="From_0"/>
+                            <key-binding alias="null" key="From_2"/>
+                            <key-binding alias="null" key="To_2"/>
+                            <key-binding alias="null" key="From_3"/>
+                            <key-binding alias="null" key="To_3"/>
+                            <key-binding alias="null" key="From_4"/>
+                            <key-binding alias="null" key="To_4"/>
+                            <key-binding alias="null" key="From_5"/>
+                            <key-binding alias="null" key="To_5"/>
+                            <key-binding alias="null" key="From_6"/>
+                            <key-binding alias="null" key="To_6"/>
+                            <key-binding alias="null" key="To_7"/>
+                            <key-binding alias="null" key="From_8"/>
+                            <key-binding alias="null" key="To_8"/>
+                            <key-binding alias="null" key="From_9"/>
+                            <key-binding alias="null" key="To_9"/>
+                            <key-binding alias="PaymentError" key="To_0"/>
+                            <key-binding alias="dw.web.URLUtils.https('COBilling-Start', 'altapayErrorMessage', ErrorMessage)" key="From_1"/>
+                            <key-binding alias="Location" key="To_1"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <simple-transition/>
+                        <node>
                           <interaction-node transaction-required="false">
-                            <template buffered="true" dynamic="false" name="error/generalerror"/>
+                            <template buffered="true" dynamic="false" name="util/redirect"/>
                           </interaction-node>
-                          <node-display x="1" y="1"/>
+                          <node-display x="0" y="2"/>
                         </node>
                       </segment>
                     </branch>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="false"/>
-                      <key-binding alias="ErrorMessage" key="From_0"/>
-                      <key-binding alias="null" key="From_2"/>
-                      <key-binding alias="null" key="To_2"/>
-                      <key-binding alias="null" key="From_3"/>
-                      <key-binding alias="null" key="To_3"/>
-                      <key-binding alias="null" key="From_4"/>
-                      <key-binding alias="null" key="To_4"/>
-                      <key-binding alias="null" key="From_5"/>
-                      <key-binding alias="null" key="To_5"/>
-                      <key-binding alias="null" key="From_6"/>
-                      <key-binding alias="null" key="To_6"/>
-                      <key-binding alias="null" key="To_7"/>
-                      <key-binding alias="null" key="From_8"/>
-                      <key-binding alias="null" key="To_8"/>
-                      <key-binding alias="null" key="From_9"/>
-                      <key-binding alias="null" key="To_9"/>
-                      <key-binding alias="PaymentError" key="To_0"/>
-                      <key-binding alias="dw.web.URLUtils.https('COBilling-Start', 'altapayErrorMessage', ErrorMessage)" key="From_1"/>
-                      <key-binding alias="Location" key="To_1"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <interaction-node transaction-required="false">
-                      <template buffered="true" dynamic="false" name="util/redirect"/>
-                    </interaction-node>
-                    <node-display x="0" y="2"/>
-                  </node>
-                </segment>
-              </branch>
-              <branch basename="b4" source-connector="order_created">
-                <transition target-connector="in1"/>
-                <segment>
-                  <node>
-                    <join-node/>
-                    <node-display x="0" y="1"/>
-                  </node>
-                  <simple-transition>
-                    <transition-display>
-                      <bend-point relative-to="source" x="0" y="1"/>
-                    </transition-display>
-                  </simple-transition>
-                  <node>
-                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="true"/>
-                      <config-property key="OnError" value="PIPELET_ERROR"/>
-                      <config-property key="ScriptFile" value="pipelet/AltaPayUpdateOrderPaymentInstrument.ds"/>
-                      <key-binding alias="ScriptLog" key="ScriptLog"/>
-                      <key-binding alias="Order" key="Order"/>
-                      <key-binding alias="CurrentHttpParameterMap.xml.stringValue" key="XMLString"/>
-                      <key-binding alias="OrderConfirmed" key="OrderConfirmed"/>
-                      <key-binding alias="OpenMessage" key="OpenMessage"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                    <branch basename="b2" source-connector="error">
-                      <transition target-connector="in1" target-path="../b3.1"/>
+                    <branch basename="b4" source-connector="order_created">
+                      <transition target-connector="in1"/>
+                      <segment>
+                        <node>
+                          <join-node/>
+                          <node-display x="0" y="2"/>
+                        </node>
+                        <simple-transition>
+                          <transition-display>
+                            <bend-point relative-to="source" x="0" y="1"/>
+                          </transition-display>
+                        </simple-transition>
+                        <node>
+                          <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="true"/>
+                            <config-property key="OnError" value="PIPELET_ERROR"/>
+                            <config-property key="ScriptFile" value="pipelet/AltaPayUpdateOrderPaymentInstrument.ds"/>
+                            <key-binding alias="ScriptLog" key="ScriptLog"/>
+                            <key-binding alias="Order" key="Order"/>
+                            <key-binding alias="CurrentHttpParameterMap.xml.stringValue" key="XMLString"/>
+                            <key-binding alias="OrderConfirmed" key="OrderConfirmed"/>
+                            <key-binding alias="OpenMessage" key="OpenMessage"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                          <branch basename="b2" source-connector="error">
+                            <transition target-connector="in1" target-path="../b3.1"/>
+                          </branch>
+                        </node>
+                        <simple-transition>
+                          <transition-display>
+                            <bend-point relative-to="source" x="0" y="1"/>
+                          </transition-display>
+                        </simple-transition>
+                        <node>
+                          <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="true"/>
+                            <key-binding alias="dw.web.URLUtils.https(&quot;AltaPay-OrderConfirmation&quot;)" key="From_0"/>
+                            <key-binding alias="Location" key="To_0"/>
+                            <key-binding alias="null" key="From_2"/>
+                            <key-binding alias="null" key="To_2"/>
+                            <key-binding alias="null" key="From_3"/>
+                            <key-binding alias="null" key="To_3"/>
+                            <key-binding alias="null" key="From_4"/>
+                            <key-binding alias="null" key="To_4"/>
+                            <key-binding alias="null" key="From_5"/>
+                            <key-binding alias="null" key="To_5"/>
+                            <key-binding alias="null" key="From_6"/>
+                            <key-binding alias="null" key="To_6"/>
+                            <key-binding alias="null" key="From_7"/>
+                            <key-binding alias="null" key="To_7"/>
+                            <key-binding alias="null" key="From_8"/>
+                            <key-binding alias="null" key="To_8"/>
+                            <key-binding alias="null" key="From_9"/>
+                            <key-binding alias="null" key="To_9"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <simple-transition/>
+                        <node>
+                          <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <config-property key="OnError" value="PIPELET_ERROR"/>
+                            <config-property key="ScriptFile" value="pipelet/UpdateOpenNotificationMessage.ds"/>
+                            <key-binding alias="Logger" key="ScriptLog"/>
+                            <key-binding alias="openMessage" key="openMessage"/>
+                            <key-binding alias="OrderConfirmed" key="orderConfirmation"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <simple-transition/>
+                        <node>
+                          <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <key-binding alias="openMessage" key="From_0"/>
+                            <key-binding alias="openMessage" key="To_0"/>
+                            <key-binding alias="null" key="From_1"/>
+                            <key-binding alias="null" key="To_1"/>
+                            <key-binding alias="null" key="From_2"/>
+                            <key-binding alias="null" key="To_2"/>
+                            <key-binding alias="null" key="From_3"/>
+                            <key-binding alias="null" key="To_3"/>
+                            <key-binding alias="null" key="From_4"/>
+                            <key-binding alias="null" key="To_4"/>
+                            <key-binding alias="null" key="From_5"/>
+                            <key-binding alias="null" key="To_5"/>
+                            <key-binding alias="null" key="From_6"/>
+                            <key-binding alias="null" key="To_6"/>
+                            <key-binding alias="null" key="From_7"/>
+                            <key-binding alias="null" key="To_7"/>
+                            <key-binding alias="null" key="From_8"/>
+                            <key-binding alias="null" key="To_8"/>
+                            <key-binding alias="null" key="From_9"/>
+                            <key-binding alias="null" key="To_9"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <simple-transition/>
+                        <node>
+                          <jump-node start-name-ref="AltaPay-OrderConfirmation"/>
+                          <node-display x="0" y="1"/>
+                        </node>
+                      </segment>
                     </branch>
-                  </node>
-                  <simple-transition>
-                    <transition-display>
-                      <bend-point relative-to="source" x="0" y="1"/>
-                    </transition-display>
-                  </simple-transition>
-                  <node>
-                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="true"/>
-                      <key-binding alias="dw.web.URLUtils.https(&quot;AltaPay-OrderConfirmation&quot;)" key="From_0"/>
-                      <key-binding alias="Location" key="To_0"/>
-                      <key-binding alias="null" key="From_2"/>
-                      <key-binding alias="null" key="To_2"/>
-                      <key-binding alias="null" key="From_3"/>
-                      <key-binding alias="null" key="To_3"/>
-                      <key-binding alias="null" key="From_4"/>
-                      <key-binding alias="null" key="To_4"/>
-                      <key-binding alias="null" key="From_5"/>
-                      <key-binding alias="null" key="To_5"/>
-                      <key-binding alias="null" key="From_6"/>
-                      <key-binding alias="null" key="To_6"/>
-                      <key-binding alias="null" key="From_7"/>
-                      <key-binding alias="null" key="To_7"/>
-                      <key-binding alias="null" key="From_8"/>
-                      <key-binding alias="null" key="To_8"/>
-                      <key-binding alias="null" key="From_9"/>
-                      <key-binding alias="null" key="To_9"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="false"/>
-                      <config-property key="OnError" value="PIPELET_ERROR"/>
-                      <config-property key="ScriptFile" value="pipelet/UpdateOpenNotificationMessage.ds"/>
-                      <key-binding alias="Logger" key="ScriptLog"/>
-                      <key-binding alias="openMessage" key="openMessage"/>
-                      <key-binding alias="OrderConfirmed" key="orderConfirmation"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
-                      <config-property key="Transactional" value="false"/>
-                      <key-binding alias="openMessage" key="From_0"/>
-                      <key-binding alias="openMessage" key="To_0"/>
-                      <key-binding alias="null" key="From_1"/>
-                      <key-binding alias="null" key="To_1"/>
-                      <key-binding alias="null" key="From_2"/>
-                      <key-binding alias="null" key="To_2"/>
-                      <key-binding alias="null" key="From_3"/>
-                      <key-binding alias="null" key="To_3"/>
-                      <key-binding alias="null" key="From_4"/>
-                      <key-binding alias="null" key="To_4"/>
-                      <key-binding alias="null" key="From_5"/>
-                      <key-binding alias="null" key="To_5"/>
-                      <key-binding alias="null" key="From_6"/>
-                      <key-binding alias="null" key="To_6"/>
-                      <key-binding alias="null" key="From_7"/>
-                      <key-binding alias="null" key="To_7"/>
-                      <key-binding alias="null" key="From_8"/>
-                      <key-binding alias="null" key="To_8"/>
-                      <key-binding alias="null" key="From_9"/>
-                      <key-binding alias="null" key="To_9"/>
-                    </pipelet-node>
-                    <node-display x="0" y="1"/>
-                  </node>
-                  <simple-transition/>
-                  <node>
-                    <jump-node start-name-ref="AltaPay-OrderConfirmation"/>
-                    <node-display x="0" y="1"/>
                   </node>
                 </segment>
               </branch>
@@ -731,7 +748,7 @@
         <call-node start-name-ref="COPlaceOrder-FailImpl"/>
         <node-display x="0" y="3"/>
       </node>
-      <transition target-connector="in1" target-path="/PaymentSuccess.2/b4.1/b3.1"/>
+      <transition target-connector="in1" target-path="/PaymentSuccess.2/b4.1/b2.1/b3.1"/>
     </segment>
   </branch>
   <branch basename="_ANONYMOUS_BRANCH_15">
@@ -1193,7 +1210,7 @@
         <text-node>
           <description>Pipeline to redirect the user to the confirmation page.</description>
         </text-node>
-        <node-display width="2" x="1" y="35"/>
+        <node-display width="2" x="0" y="39"/>
       </node>
     </segment>
   </branch>
@@ -1203,7 +1220,7 @@
         <text-node>
           <description>Shows the confirmation page.</description>
         </text-node>
-        <node-display x="4" y="35"/>
+        <node-display x="4" y="39"/>
       </node>
     </segment>
   </branch>
@@ -1211,7 +1228,7 @@
     <segment>
       <node>
         <start-node name="OrderConfirmation" secure="true"/>
-        <node-display x="1" y="36"/>
+        <node-display x="1" y="40"/>
       </node>
       <simple-transition>
         <transition-display>
@@ -1288,7 +1305,7 @@
     <segment>
       <node>
         <start-node name="ShowConfirmation" secure="false"/>
-        <node-display x="4" y="36"/>
+        <node-display x="4" y="40"/>
       </node>
       <simple-transition>
         <transition-display>
@@ -1310,6 +1327,82 @@
       <node>
         <jump-node start-name-ref="COSummary-ShowConfirmation"/>
         <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="CheckCreditCardFraud">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="CheckCreditCardFraud" secure="false"/>
+        <node-display x="6" y="40"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="request.httpParameterMap.fraud_recommendation == 'Deny'" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <call-node start-name-ref="COPlaceOrder-FailImpl"/>
+              <node-display x="0" y="2"/>
+              <branch basename="b2" source-connector="error">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="target" x="0" y="-1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="false"/>
+                      <key-binding alias="'Card declined'" key="From_0"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                      <key-binding alias="PaymentError" key="To_0"/>
+                      <key-binding alias="dw.web.URLUtils.https('COBilling-Start', 'altapayErrorMessage', 'Card declined')" key="From_1"/>
+                      <key-binding alias="Location" key="To_1"/>
+                    </pipelet-node>
+                    <node-display x="0" y="2"/>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <interaction-node transaction-required="false">
+                      <template buffered="true" dynamic="false" name="util/redirect"/>
+                    </interaction-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                </segment>
+              </branch>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node name="OK"/>
+        <node-display orientation="horizontal" x="2" y="1"/>
       </node>
     </segment>
   </branch>
