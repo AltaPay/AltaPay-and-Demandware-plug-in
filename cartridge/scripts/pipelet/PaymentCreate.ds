@@ -66,19 +66,12 @@ function execute( args : PipelineDictionary ) : Number
 	}
 	
 	//Credit card token:
-	var custom: CustomAttributes = session.getCustomer().getProfile().getCustom();
-
-	try {	
-		var ccToken = custom.ccToken;
-		if (ccToken != undefined && ccToken != null) {
-			parameterArr.push (['ccToken', ccToken].join('=')); 
-		}
+	var ST = require('~/cartridge/scripts/pipelet/SaveCreditCardToken.ds');
+	var ccToken = ST.getCcToken();
+	if (ccToken != undefined && ccToken != null) {
+		parameterArr.push (['ccToken', ccToken].join('=')); 
 	}
-	catch (e) {
-		// Exception: ccToken wasn't defined inside Demandware Business Manager 
-	}
-	
-	
+		
 	//CSRF TOKEN:
 	var CSRFProtection = require('dw/web/CSRFProtection');
 	var name = CSRFProtection.getTokenName();

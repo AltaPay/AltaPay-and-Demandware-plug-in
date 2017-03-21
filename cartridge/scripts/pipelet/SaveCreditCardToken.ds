@@ -21,7 +21,11 @@ function save () {
 		return;
 	}
 
-	var custom: CustomAttributes = session.getCustomer().getProfile().getCustom(); 
+	var custom: CustomAttributes = getCustomAttributes(); 
+	
+	if (custom == null) {
+		return;
+	}
 	
 	try {
 		
@@ -56,7 +60,45 @@ function save () {
 	}
 }
 
+function getCustomAttributes() {
+
+	// Credit card token:
+	var customer, profile;
+
+	if ((customer = session.getCustomer()) == null) {
+		return null;
+	}
+	else if ((profile = customer.getProfile()) == null) {
+		return null;
+	}
+
+	var custom: CustomAttributes = profile.getCustom();
+	
+	return custom;	
+}
+
+function getCcToken () {
+	
+	var custom: CustomAttributes = getCustomAttributes();
+	
+	if (custom == null) {
+		return null;
+	}
+	
+	try {
+		
+		return custom.ccToken;
+		
+	}
+	catch (e) {
+		// Exception: ccToken wasn't defined inside Demandware Business Manager 
+		return null;
+	}
+	
+}	
+
 module.exports = {
 	execute: execute,
+	getCcToken: getCcToken,
 	save: save
 }
