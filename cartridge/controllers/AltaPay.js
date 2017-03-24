@@ -6,13 +6,11 @@ importPackage(dw.order);
 importPackage(dw.system);
 importPackage(dw.web);
 
-var guard = require('app_storefront_controllers/cartridge/scripts/guard');
-
-var Pipeline = require('dw/system/Pipeline')
+var guard = require('altapay_controllers/cartridge/scripts/guard');
 
 var ISML = require('dw/template/ISML');
 
-var app = require('app_storefront_controllers/cartridge/scripts/app');
+var app = require('altapay_controllers/cartridge/scripts/app');
 
 var Logger = require('dw/system/Logger');
 
@@ -138,14 +136,18 @@ function payment(orderConfirmed) {
 	else if (order.getStatus() != Order.ORDER_STATUS_NEW) {
 		// Order status should change from CREATED to NEW.
 	
-		// COPlaceOrder-SubmitImpl =========================================================
+		// Replacement for COPlaceOrder-SubmitImpl: ==========================================================================
 		try {
 		
-			Pipeline.execute('COPlaceOrder-SubmitImpl', {Order: order});	
-			//app.getController('COPlaceOrder').SubmitImpl(order); // NOTE: There is no equivalent method in the controller!		
+			var orderPlacementStatus = app.getModel('Order').submit(order);
+	    	if (orderPlacementStatus.error) {
+	    		logErrorAndRenderTemplate('Error calling Order.submit: ' + orderPlacementStatus.PlaceOrderError.getMessage());
+				return;		
+	    	}
+	
 		}
 		catch (err) {		
-			logErrorAndRenderTemplate('Error calling COPlaceOrder-SubmitImpl: ' + err);
+			logErrorAndRenderTemplate('Error calling Order.submit: ' + err);
 			return;		
 		}
 	
@@ -251,7 +253,6 @@ function fail() {
 	try {
 		
 		// This recovers the basket, so the user can try to checkout again:
-		// Pipeline.execute('COPlaceOrder-FailImpl', {Order: order});  
 		var txn =  require('dw/system/Transaction');
 		
 		var status = txn.wrap (
@@ -371,14 +372,18 @@ function notification() {
 		
 		if (order.getStatus() != Order.ORDER_STATUS_NEW) {
 			
-			// COPlaceOrder-SubmitImpl =========================================================
+			// Order status should change from CREATED to NEW: ================================================================
 			try {
 				
-				Pipeline.execute('COPlaceOrder-SubmitImpl', {Order: order});
-					
+				var orderPlacementStatus = app.getModel('Order').submit(order);
+		    	if (orderPlacementStatus.error) {
+		    		logErrorAndRenderTemplate('Error calling Order.submit: ' + orderPlacementStatus.PlaceOrderError.getMessage());
+					return;		
+		    	}
+		
 			}
 			catch (err) {		
-				logErrorAndRenderTemplate('Error calling COPlaceOrder-SubmitImpl: ' + err);
+				logErrorAndRenderTemplate('Error calling Order.submit: ' + err);
 				return;		
 			}
 			
