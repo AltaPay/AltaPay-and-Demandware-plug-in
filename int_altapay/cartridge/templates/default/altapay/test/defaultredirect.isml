@@ -1,0 +1,16 @@
+<!--- TEMPLATENAME: defaultredirect.isml --->
+<isdecorate template="checkout/pt_checkout">
+
+	<isinclude template="util/modules"/>
+
+	<h1><isprint value="${Resource.msg('altapay.defaultredirect.header','altapay',null)}" encoding="off"/></h1>
+	
+	<isprint value="${Resource.msg('altapay.defaultredirect.description','altapay',null)}" encoding="off"/>
+	
+	<img src="${URLUtils.staticURL('/images/loader.gif')}" />
+	
+	<div id="PensioRedirectForm">
+	  All content in here will be replaced by the actual redirect form
+	</div>
+	
+</isdecorate>

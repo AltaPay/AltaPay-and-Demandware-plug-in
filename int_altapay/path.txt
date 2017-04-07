@@ -1,0 +1,13 @@
+* original:
+
+int_altapay:test_pipelines:test_core:SG_pipelines:SG_core
+
+
+
+* to use controllers and hooks only:
+
+int_altapay:altapay_controllers:SG_controllers:SG_pipelines:SG_core
+
+OR
+
+int_altapay:altapay_controllers:altapay_core:altapay_pipelines  -> pipelines are still used!
