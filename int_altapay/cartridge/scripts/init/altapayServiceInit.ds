@@ -1,0 +1,37 @@
+importPackage (dw.svc);
+importPackage (dw.net);
+importPackage (dw.io);
+
+ServiceRegistry.configure ("int_altapay.service", {
+	
+    createRequest: function (svc: HTTPService, params) {
+
+		var str = [];
+  		
+  		for(var p in params) {
+    		if (params.hasOwnProperty(p)) {
+      			str.push(encodeURIComponent(p) + "=" + encodeURIComponent(params[p]));
+    		}
+  		}
+  		
+  		return str.join("&");
+
+    },
+    
+    parseResponse : function (svc: HTTPService, response) {
+    
+        return response;
+    
+    },
+    
+    mockCall : function (svc: HTTPService, params) {
+    	
+    	return {
+			statusCode: 200,
+			statusMessage: "Success",
+			text: "<emptyXml/>"
+		};
+    
+    }
+
+});

@@ -1,4 +1,3 @@
 {
-   "hooks": "./cartridge/scripts/hooks.json",
    "init": ["int_altapay/cartridge/scripts/init/altapayServiceInit.ds"]
 }

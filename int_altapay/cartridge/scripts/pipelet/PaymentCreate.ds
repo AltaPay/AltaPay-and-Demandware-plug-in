@@ -7,6 +7,7 @@
 * @output CreatePaymentURL : String AltaPay createPayment url with parameters.
 *
 */
+importPackage( dw.svc );
 importPackage( dw.net );
 importPackage( dw.order );
 importPackage( dw.system );
@@ -52,24 +53,24 @@ function execute( args : PipelineDictionary ) : Number
 	}
 	
 	//Create parameters
-	var parameterArr = new Array();
-	parameterArr.push( [ 'terminal', encodeURIComponent(altapayTeminalName)			].join( '=' ) );
-	parameterArr.push( [ 'shop_orderid', order.orderNo					].join( '=' ) );
-	parameterArr.push( [ 'amount', paymentTotal.value.toFixed(2)					].join( '=' ) );
-	parameterArr.push( [ 'currency', currencyCode			 						].join( '=' ) );
-	parameterArr.push( [ 'language', convertLanguageCode(request.locale)	].join( '=' ) );
-	parameterArr.push( [ 'type', 'payment'											].join( '=' ) ); //See documentation for other payment types.
+	var paramObj = new Object();
+	paramObj['terminal'] = altapayTeminalName;
+	paramObj['shop_orderid'] = order.orderNo;
+	paramObj['amount'] = paymentTotal.value.toFixed(2);
+	paramObj['currency'] = currencyCode;
+	paramObj['language'] = convertLanguageCode(request.locale);
+	paramObj['type'] = 'payment'; //See documentation for other payment types.
 	
 	//Callback config parameters
 	if ( !empty(altaPayMgr.paymentPagePipeline) ) {
-		parameterArr.push( [ encodeURIComponent('config[callback_form]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentPagePipeline )) 	].join( '=' ) );
+		paramObj['config[callback_form]'] = URLUtils.https( altaPayMgr.paymentPagePipeline );
 	}
 	
 	//Credit card token:
 	var ST = require('~/cartridge/scripts/pipelet/SaveCreditCardToken.ds');
 	var ccToken = ST.getCcToken();
 	if (ccToken != undefined && ccToken != null) {
-		parameterArr.push (['ccToken', ccToken].join('=')); 
+		paramObj['ccToken'] = ccToken;
 	}
 		
 	//CSRF TOKEN:
@@ -77,69 +78,67 @@ function execute( args : PipelineDictionary ) : Number
 	var name = CSRFProtection.getTokenName();
 	var token = '?' + name + '=' + req.httpParameterMap.csrf_token.stringValue;
 	
-	parameterArr.push( [ encodeURIComponent('config[callback_ok]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentSuccessPipeline  )) + token 	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('config[callback_fail]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentFailPipeline ))	 + token 	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('config[callback_open]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentOpenPipeline ))	 + token 	].join( '=' ) );
+	paramObj['config[callback_ok]'] = URLUtils.https( altaPayMgr.paymentSuccessPipeline  ) + token;
+	paramObj['config[callback_fail]'] = URLUtils.https( altaPayMgr.paymentFailPipeline ) + token;
+	paramObj['config[callback_open]'] = URLUtils.https( altaPayMgr.paymentOpenPipeline ) + token;
 	
 	if (!empty(altaPayMgr.redirectPipeline)) {
-		parameterArr.push( [ encodeURIComponent('config[callback_redirect]'), encodeURIComponent(URLUtils.https( altaPayMgr.redirectPipeline ))	].join( '=' ) );
+		paramObj['config[callback_redirect]'] = URLUtils.https( altaPayMgr.redirectPipeline );
 	}
 	if (!empty(altaPayMgr.paymentNotificationPipeline)) {
-		parameterArr.push( [ encodeURIComponent('config[callback_notification]'), encodeURIComponent(URLUtils.https( altaPayMgr.paymentNotificationPipeline )) + token ].join( '=' ) );
+		paramObj['config[callback_notification]'] = URLUtils.https( altaPayMgr.paymentNotificationPipeline ) + token;
 	}
 	
 	//Customer config parameters
-	parameterArr.push( [ encodeURIComponent('customer_info[email]'), encodeURIComponent(order.customerEmail)						].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[username]'), encodeURIComponent(order.customerEmail)					].join( '=' ) );
+	paramObj['customer_info[email]'] = order.customerEmail;
+	paramObj['customer_info[username]'] = order.customerEmail;
 	if (order.billingAddress.phone != null && !empty(order.billingAddress.phone)) {
-		parameterArr.push( [ encodeURIComponent('customer_info[customer_phone]'), encodeURIComponent(order.billingAddress.phone)	].join( '=' ) );
+		paramObj['customer_info[customer_phone]'] = order.billingAddress.phone;
 	}
 	
 	//Billing address parameters
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_firstname]'), encodeURIComponent(order.billingAddress.firstName)].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_lastname]'), encodeURIComponent(order.billingAddress.lastName)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_address]'), encodeURIComponent(order.billingAddress.address1)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_postal]'), encodeURIComponent(order.billingAddress.postalCode)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_city]'), encodeURIComponent(order.billingAddress.city)			].join( '=' ) );
+	paramObj['customer_info[billing_firstname]'] = order.billingAddress.firstName;
+	paramObj['customer_info[billing_lastname]'] = order.billingAddress.lastName;
+	paramObj['customer_info[billing_address]'] = order.billingAddress.address1;
+	paramObj['customer_info[billing_postal]'] = order.billingAddress.postalCode;
+	paramObj['customer_info[billing_city]'] = order.billingAddress.city;
 	if (order.billingAddress.stateCode != null && !empty(order.billingAddress.stateCode)) {
-		parameterArr.push( [ encodeURIComponent('customer_info[billing_region]'), encodeURIComponent(order.billingAddress.stateCode)	].join( '=' ) );
+		paramObj['customer_info[billing_region]'] = order.billingAddress.stateCode;
 	}
-	parameterArr.push( [ encodeURIComponent('customer_info[billing_country]'), encodeURIComponent(order.billingAddress.countryCode)					].join( '=' ) );
+	paramObj['customer_info[billing_country]'] = order.billingAddress.countryCode;
 	
 	//Shipping config parameters
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_firstname]'), encodeURIComponent(order.defaultShipment.shippingAddress.firstName)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_lastname]'), encodeURIComponent(order.defaultShipment.shippingAddress.lastName)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_address]'), encodeURIComponent(order.defaultShipment.shippingAddress.address1)		].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_postal]'), encodeURIComponent(order.defaultShipment.shippingAddress.postalCode)	].join( '=' ) );
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_city]'), encodeURIComponent(order.defaultShipment.shippingAddress.city)			].join( '=' ) );
+	paramObj['customer_info[shipping_firstname]'] = order.defaultShipment.shippingAddress.firstName;
+	paramObj['customer_info[shipping_lastname]'] = order.defaultShipment.shippingAddress.lastName;
+	paramObj['customer_info[shipping_address]'] = order.defaultShipment.shippingAddress.address1;
+	paramObj['customer_info[shipping_postal]'] = order.defaultShipment.shippingAddress.postalCode;
+	paramObj['customer_info[shipping_city]'] = order.defaultShipment.shippingAddress.city;
 	if (order.defaultShipment.shippingAddress.stateCode != null && !empty(order.defaultShipment.shippingAddress.stateCode)) {
-		parameterArr.push( [ encodeURIComponent('customer_info[shipping_region]'), encodeURIComponent(order.defaultShipment.shippingAddress.stateCode)		].join( '=' ) );
+		paramObj['customer_info[shipping_region]'] = order.defaultShipment.shippingAddress.stateCode;
 	}
-	parameterArr.push( [ encodeURIComponent('customer_info[shipping_country]'), encodeURIComponent(order.defaultShipment.shippingAddress.countryCode)	].join( '=' ) );
+	paramObj['customer_info[shipping_country]'] = order.defaultShipment.shippingAddress.countryCode;
 	
 	//Orderlines parameters
 	if (order.shipments != null) {
 		var lineIndex : Number = 1;
 		for each (let shipment : Shipment in order.shipments) {
 			//Add shipping
-			parameterArr.push( [ encodeURIComponent('orderLines[0][description]'), encodeURIComponent(dw.web.Resource.msg('altapay.paymentcreate.shipment','altapay','Shipment'))].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][itemId]'), 'shipment'													].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][quantity]'), '1'															].join( '=' ) );
-			//parameterArr.push( [ encodeURIComponent('orderLines[0][unitPrice]'), encodeURIComponent(shipment.adjustedShippingTotalNetPrice)	].join( '=' ) );
-			//parameterArr.push( [ encodeURIComponent('orderLines[0][taxAmount]'), encodeURIComponent(shipment.adjustedShippingTotalTax)		].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][unitPrice]'), encodeURIComponent(shipment.shippingTotalNetPrice)			].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][taxAmount]'), encodeURIComponent(shipment.shippingTotalTax)				].join( '=' ) );
-			parameterArr.push( [ encodeURIComponent('orderLines[0][goodsType]'), 'shipment'													].join( '=' ) );
+			paramObj['orderLines[0][description]'] = dw.web.Resource.msg('altapay.paymentcreate.shipment','altapay','Shipment');
+			paramObj['orderLines[0][itemId]'] = 'shipment';
+			paramObj['orderLines[0][quantity]'] = '1';
+			paramObj['orderLines[0][unitPrice]'] = shipment.shippingTotalNetPrice;
+			paramObj['orderLines[0][taxAmount]'] = shipment.shippingTotalTax;
+			paramObj['orderLines[0][goodsType]'] = 'shipment';
 				
 			//Add products
 			for each (let productLineItem : ProductLineItem in shipment.productLineItems) {
 				var unitPrice : Number = productLineItem.adjustedNetPrice / productLineItem.quantity;
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][description]'), encodeURIComponent(productLineItem.productName)	].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][itemId]'), encodeURIComponent(productLineItem.productID)			].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][quantity]'), encodeURIComponent(productLineItem.quantity)		].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][unitPrice]'), encodeURIComponent(unitPrice.toFixed(2))			].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][taxAmount]'), encodeURIComponent(productLineItem.adjustedTax)	].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][goodsType]'), 'item'												].join( '=' ) );
+				paramObj['orderLines['+lineIndex+'][description]'] = productLineItem.productName;
+				paramObj['orderLines['+lineIndex+'][itemId]'] = productLineItem.productID;
+				paramObj['orderLines['+lineIndex+'][quantity]'] = productLineItem.quantity;
+				paramObj['orderLines['+lineIndex+'][unitPrice]'] = unitPrice.toFixed(2);
+				paramObj['orderLines['+lineIndex+'][taxAmount]'] = productLineItem.adjustedTax;
+				paramObj['orderLines['+lineIndex+'][goodsType]'] = 'item';
 				
 				lineIndex++;
 			}
@@ -159,59 +158,55 @@ function execute( args : PipelineDictionary ) : Number
 			}
 	
 			if (totalDicsountExclVAT > 0) {
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][description]'), encodeURIComponent(dw.web.Resource.msg('altapay.paymentcreate.handling','altapay','Handling'))		].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][itemId]'), 'handling'													].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][quantity]'), '1'															].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][unitPrice]'), encodeURIComponent(totalDicsountExclVAT * -1)				].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][taxAmount]'), encodeURIComponent(totalDicsountExclVAT - totalDiscount)	].join( '=' ) );
-				parameterArr.push( [ encodeURIComponent('orderLines['+lineIndex+'][goodsType]'), 'handling'													].join( '=' ) );
+				paramObj['orderLines['+lineIndex+'][description]'] = dw.web.Resource.msg('altapay.paymentcreate.handling','altapay','Handling');
+				paramObj['orderLines['+lineIndex+'][itemId]'] = 'handling';
+				paramObj['orderLines['+lineIndex+'][quantity]'] = '1';
+				paramObj['orderLines['+lineIndex+'][unitPrice]'] = totalDicsountExclVAT * -1;
+				paramObj['orderLines['+lineIndex+'][taxAmount]'] = totalDicsountExclVAT - totalDiscount;
+				paramObj['orderLines['+lineIndex+'][goodsType]'] = 'handling';
 			}
 		}
 	}
 	
 	//Add Order token
-	parameterArr.push( ['transaction_info[demandware_order_token]', order.getOrderToken()].join( '=' ));
+	paramObj['transaction_info[demandware_order_token]'] = order.getOrderToken();
 	
 	/*
 	//add the sale_reconciliation_identifier 
-	parameterArr.push( ['sale_reconciliation_identifier', "Insert reconciliation identifier here" ].join( '=' ));
+	paramObj['sale_reconciliation_identifier'] = "Insert reconciliation identifier here";
 	*/
 	
 	//Cookies
 	var cookies : Cookies = request.httpCookies;
 	var cookieArr = new Array();
 	for each (var cookie in cookies) {
-		cookieArr.push( [ cookie.name, cookie.value			].join( '=' ) );
+		cookieArr.push ([cookie.name, cookie.value].join( '=' ));
 	}
 	var cookieString : String = cookieArr.join( ";" );
-	parameterArr.push( [ 'cookie', encodeURIComponent(cookieString)	].join( '=' ) );
-	
-	var parameters : String = parameterArr.join( "&" );
+	paramObj['cookie'] = cookieString;
 	
 	try {
+ 		
  		args.CreatePaymentURL = "";
     	
-    	var httpClient : HTTPClient = new HTTPClient();
-		var username : String = altaPayMgr.testMode ? altaPayMgr.usernameTest : altaPayMgr.username;
-	    var password : String = altaPayMgr.testMode ? altaPayMgr.passwordTest : altaPayMgr.password;
-		httpClient.open('POST', url, username, password);
-		httpClient.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
- 		httpClient.timeout = (parseInt(altaPayMgr.timeout)*1000);
-    	httpClient.send(parameters);
+    	var service: HTTPFormService = ServiceRegistry.get ("int_altapay.service");
+    	service.addHeader ("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+    	service.URL += CREATEPAYMENTURL;  
+    	var result: Result = service.call (paramObj);
     	
-    	if ( httpClient.statusCode == 200 ) {
-			var xml_obj : XML = new XML(httpClient.text);
+    	if (result.status == Result.OK && result.object.statusCode == 200) {
+			var xml_obj : XML = new XML(result.object.text);
 			if (xml_obj.Header.ErrorCode == "0") {
 				args.CreatePaymentURL = xml_obj.Body.Url.toString();
 			} else {
 				Logger.error("AltaPay error during create payment request. ErrorCode=" + xml_obj.Header.ErrorCode + ", ErrorMessage=" + xml_obj.Header.ErrorMessage);
 			}
 		} else {
-			Logger.error("AltaPay error during create payment request. httpClient.statusCode=" + httpClient.statusCode + ", httpClient.statusMessage=" + httpClient.statusMessage);
+			Logger.error("AltaPay service call error during create payment request. ErrorCode=" + result.error + ", ErrorMessage=" + result.errorMessage);
     	}
     } catch( e ) {
     	var exception = e;
-    	Logger.error("AltaPay error during create payment request.", e);
+    	Logger.error("AltaPay error during create payment request: " + e);
     }
     
    return PIPELET_NEXT;
