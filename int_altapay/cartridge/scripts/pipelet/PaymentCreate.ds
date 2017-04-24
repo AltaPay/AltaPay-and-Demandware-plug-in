@@ -24,8 +24,7 @@ function execute( args : PipelineDictionary ) : Number
 	var req = request;
 	
 	var altaPayMgr : Object = getAltaPayMgr();
-	var url : String = (altaPayMgr.testMode ? altaPayMgr.baseTestURL : altaPayMgr.baseProductionURL) +
-						CREATEPAYMENTURL;
+
 	var currencyCode : String = order.currencyCode != null ? order.currencyCode : session.currency.currencyCode; 
 	
 	if(TaxMgr.taxationPolicy == TaxMgr.TAX_POLICY_GROSS && order.totalGrossPrice.available) {
