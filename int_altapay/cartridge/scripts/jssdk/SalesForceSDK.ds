@@ -1,0 +1,117 @@
+importPackage (dw.svc);
+
+var altapay = require ('./Rhino-AltaPay-Jssdk-20170620_032336.js');
+
+/**
+ * XML deserializer for SalesForce.
+ */
+function SalesForceXml() {
+	
+}
+
+/**
+ * @param result
+ *            {Result}
+ * @returns {XML}
+ */
+SalesForceXml.prototype.deserialize = function (result) {
+
+	var xml: XML = new XML(result.object.text);
+
+	return xml;
+
+};
+
+/**
+ * Factory that provides SalesForce context.
+ * 
+ * @param salesForceService
+ *            {HTTPFormService}
+ * @extends {RhinoAltaPayFactory}
+ * @constructor
+ */
+function SalesForceAltaPayFactory(salesForceService) {
+	
+	altapay.ObjectHelper.extend(this, new altapay.RhinoAltaPayFactory(new altapay.AltaPayFactory()));
+	
+	this.salesForceService = salesForceService;
+
+}
+
+/**
+ * @returns {Http}
+ */
+SalesForceAltaPayFactory.prototype.getHttp = function() {
+
+	var base = new altapay.RhinoHttp(this.getXml(),this.getHttpHelper());
+	
+	return new SalesForceHttp(base, this.salesForceService);
+
+};
+
+/**
+ * @returns {Xml}
+ */
+SalesForceAltaPayFactory.prototype.getXml = function() {
+
+	return new SalesForceXml();
+
+};
+
+/**
+ * HTTP client that will use the required SalesForce HTTP connection service.
+ * 
+ * @param baseFactory
+ *            {RhinoHttp}
+ * @param salesForceService
+ *            {HTTPFormService}
+ * @extends {RhinoHttp}
+ * @constructor
+ */
+function SalesForceHttp(baseFactory, salesForceService) {
+	
+	altapay.ObjectHelper.extend(this, baseFactory);
+	
+	this.salesForceService = salesForceService;
+}
+
+/**
+ * Do a post request using the SalesForce HTTP service.
+ * 
+ * @param url
+ * @param parameters
+ *            {object}
+ * @param headers
+ *            {object}
+ * @return {Result}
+ * @throws Error
+ *             in the case of a HTTP response different from HTTP 200
+ */
+SalesForceHttp.prototype.post = function(url, parameters, headers) {
+
+	var service: HTTPFormService = this.salesForceService; 
+
+	service.URL += url; // Building the full URL
+
+	service.addHeader ("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+		
+	for (var key in headers) {
+		
+		if (key == 'Authorization') {
+			continue; // The Authorization header is ignored because the authentication is managed by the SalesForce service
+		}
+		else {
+			service.addHeader (key, headers[key]);
+		}
+	
+	}
+	
+	var result: Result = service.call (parameters);
+	
+	if (result.status != Result.OK || result.object.statusCode != 200) {
+		throw new Error ("AltaPay service call error. " +
+				"ErrorCode=" + result.error + ", ErrorMessage=" + result.errorMessage);
+	}
+
+	return result;
+};

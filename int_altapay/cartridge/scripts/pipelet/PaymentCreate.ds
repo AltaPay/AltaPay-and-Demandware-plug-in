@@ -15,6 +15,8 @@ importPackage( dw.value );
 importPackage( dw.web );
 importScript("int_altapay:libAltaPay.ds");
 importScript("int_altapay:libAltaPayHelper.ds");
+importScript("int_altapay:libAltaPayHelper.ds");
+importScript("int_altapay:jssdk/SalesForceSDK.ds");
 
 var CREATEPAYMENTURL : String = "/merchant/API/createPaymentRequest";
 
@@ -184,28 +186,33 @@ function execute( args : PipelineDictionary ) : Number
 	var cookieString : String = cookieArr.join( ";" );
 	paramObj['cookie'] = cookieString;
 	
+	paramObj.toHash = function() { // AltaPay api requires this method to be implemented
+		return this;
+	};
+		
 	try {
  		
- 		args.CreatePaymentURL = "";
+ 		var service: HTTPFormService = ServiceRegistry.get ("int_altapay.service");
+ 		
+ 		var factory = new SalesForceAltaPayFactory(service);
+
+		var mapi = factory.getMerchantApi('', '', ''); // No parameters are necessary: the parameters are already saved inside the service
+		 		    	
+    	var response: PaymentRequestResponse = mapi.createPaymentRequest(paramObj);
     	
-    	var service: HTTPFormService = ServiceRegistry.get ("int_altapay.service");
-    	service.addHeader ("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-    	service.URL += CREATEPAYMENTURL;  
-    	var result: Result = service.call (paramObj);
-    	
-    	if (result.status == Result.OK && result.object.statusCode == 200) {
-			var xml_obj : XML = new XML(result.object.text);
-			if (xml_obj.Header.ErrorCode == "0") {
-				args.CreatePaymentURL = xml_obj.Body.Url.toString();
-			} else {
-				Logger.error("AltaPay error during create payment request. ErrorCode=" + xml_obj.Header.ErrorCode + ", ErrorMessage=" + xml_obj.Header.ErrorMessage);
-			}
-		} else {
-			Logger.error("AltaPay service call error during create payment request. ErrorCode=" + result.error + ", ErrorMessage=" + result.errorMessage);
-    	}
-    } catch( e ) {
+		if (response.success()) {
+			args.CreatePaymentURL = response.getUrl();
+		} 
+		else {
+			args.CreatePaymentURL = "";
+			dw.system.Logger.error("AltaPay error during create payment request. ErrorMessage = " + response.getErrorMessage());
+		}
+    
+    } 
+    catch (e) {
+    	args.CreatePaymentURL = "";
     	var exception = e;
-    	Logger.error("AltaPay error during create payment request: " + e);
+    	dw.system.Logger.error("AltaPay error during create payment request: " + e);
     }
     
    return PIPELET_NEXT;
