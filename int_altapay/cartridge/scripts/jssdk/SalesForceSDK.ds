@@ -1,6 +1,6 @@
 importPackage (dw.svc);
 
-var altapay = require ('./Rhino-AltaPay-Jssdk-20170620_032336.js');
+var altapay = require ('./Rhino-AltaPay-Jssdk-20170629_033936.js');
 
 /**
  * XML deserializer for SalesForce.

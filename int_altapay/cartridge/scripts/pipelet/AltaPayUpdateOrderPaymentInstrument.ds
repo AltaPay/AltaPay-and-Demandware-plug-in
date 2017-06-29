@@ -8,19 +8,20 @@
 importPackage( dw.order );
 importPackage( dw.system );
 importScript( 'int_altapay:/libAltaPayHelper.ds' );
+importScript( 'int_altapay:jssdk/Rhino-AltaPay-Jssdk-20170629_033936.js' );
 
 function execute( args : PipelineDictionary ) : Number {
 	
 	var order : Order = args.Order;
 	if( args.Order == null) {
-		Logger.error( 'AltaPayUpdateOrderPaymentTransaction.ds: Order isn\'t available.' );
+		Logger.error( 'AltaPayUpdateOrderPaymentInstrument.ds: Order isn\'t available.' );
 		return PIPELET_ERROR;
 	}
 	
 	var altapayHelper : Object = getAltaPayHelper();
 	var altaPayPaymentInstrument : OrderPaymentInstrument = altapayHelper.getAltaPayPaymentInstrument( order );
 	if ( altaPayPaymentInstrument == null ) {
-		Logger.error( 'UpdateOrderPaymentTransaction.ds: PaymentInstrument not found!');
+		Logger.error( 'AltaPayUpdateOrderPaymentInstrument.ds: PaymentInstrument not found!');
 		return PIPELET_ERROR;
 	} else if ( !altapayHelper.isAltaPay ) {
 		//Not an AltaPay payment.
@@ -28,15 +29,20 @@ function execute( args : PipelineDictionary ) : Number {
 	}
 
 	if (args.XMLString != null && !empty(args.XMLString)) {
+		
 		var xml_obj : XML = new XML(args.XMLString);
 		
+		var factory = new ResponseFactory();
+		
+		var cbr = factory.getCallbackResponse(xml_obj);
+		
 		//Create parameters
-		var MaskedCardNo : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardMaskedPan);
-		var TransactionID : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.TransactionId);
-		var CreditCardType : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.PaymentSchemeName);
-		var CardExirationMonth : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Month);
-		var CardExirationYear : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.CreditCardExpiry.Year);
-		var ReconciliationID : String = encodeURIComponent(xml_obj.Body.Transactions.Transaction.ReconciliationIdentifiers.ReconciliationIdentifier.Id);
+		var MaskedCardNo : String = encodeURIComponent(cbr.getPayment(0).getCreditCardMaskedPan());
+		var TransactionID : String = encodeURIComponent(cbr.getTransactionId());
+		var CreditCardType : String = encodeURIComponent(cbr.getPayment(0).getPaymentSchemeName());
+		var CardExirationMonth : String = encodeURIComponent(cbr.getPayment(0).getCreditCardExpiryMonth());
+		var CardExirationYear : String = encodeURIComponent(cbr.getPayment(0).getCreditCardExpiryYear());
+		var ReconciliationID : String = encodeURIComponent(cbr.getPayment(0).getReconciliationIdentifier());
 	}
 	
 	//Settings payment status
